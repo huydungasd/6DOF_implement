@@ -16,6 +16,7 @@ def main():
     parser.add_argument('model', help='Model path')
     parser.add_argument('input', help='Input sequence path (e.g. \"Oxford Inertial Odometry Dataset/handheld/data4/syn/imu1.csv\" for OxIOD, \"MH_02_easy/mav0/imu0/data.csv\" for EuRoC)')
     parser.add_argument('gt', help='Ground truth path (e.g. \"Oxford Inertial Odometry Dataset/handheld/data4/syn/vi1.csv\" for OxIOD, \"MH_02_easy/mav0/state_groundtruth_estimate0/data.csv\" for EuRoC)')
+    parser.add_argument('n_points_test', help='Number of points to visualize')
     args = parser.parse_args()
 
     window_size = 200
@@ -31,7 +32,7 @@ def main():
     [x_gyro, x_acc], [y_delta_p, y_delta_q], init_p, init_q = load_dataset_6d_quat(gyro_data, acc_data, pos_data, ori_data, window_size, stride)
 
     if args.dataset == 'oxiod':
-        [yhat_delta_p, yhat_delta_q] = model.predict([x_gyro[0:200, :, :], x_acc[0:200, :, :]], batch_size=1, verbose=1)
+        [yhat_delta_p, yhat_delta_q] = model.predict([x_gyro[0:args.n_points_test, :, :], x_acc[0:args.n_points_test, :, :]], batch_size=1, verbose=1)
     elif args.dataset == 'euroc':
         [yhat_delta_p, yhat_delta_q] = model.predict([x_gyro, x_acc], batch_size=1, verbose=1)
 
@@ -39,7 +40,7 @@ def main():
     pred_trajectory = generate_trajectory_6d_quat(init_p, init_q, yhat_delta_p, yhat_delta_q)
 
     if args.dataset == 'oxiod':
-        gt_trajectory = gt_trajectory[0:200, :]
+        gt_trajectory = gt_trajectory[0:args.n_points_test, :]
 
     matplotlib.rcParams.update({'font.size': 18})
     fig = plt.figure(figsize=[14.4, 10.8])
