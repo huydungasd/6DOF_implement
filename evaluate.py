@@ -11,7 +11,7 @@ from model import *
 
 def main():
     parser = argparse.ArgumentParser()
-    parser.add_argument('dataset', choices=['oxiod', 'euroc'], help='Training dataset name (\'oxiod\' or \'euroc\')')
+    parser.add_argument('dataset', choices=['oxiod', 'euroc', 'cea'], help='Training dataset name (\'oxiod\' or \'euroc\' or \'cea\')')
     parser.add_argument('model', help='Model path')
     args = parser.parse_args()
 
@@ -53,17 +53,32 @@ def main():
         gt_data_filenames.append('V2_02_medium/mav0/state_groundtruth_estimate0/data.csv')
         gt_data_filenames.append('V1_01_easy/mav0/state_groundtruth_estimate0/data.csv')
 
+    elif args.dataset == 'cea':
+        for i in range(65, 73):
+            imu_data_filenames.append(f'data_deep/data1/imu/{i}.csv')
+            gt_data_filenames.append(f'data_deep/data1/gt/{i}.csv')
+        for i in range(85, 95):
+            imu_data_filenames.append(f'data_deep/data2/imu/{i}.csv')
+            gt_data_filenames.append(f'data_deep/data2/gt/{i}.csv')
+        for i in range(90, 100):
+            imu_data_filenames.append(f'data_deep/data3/imu/{i}.csv')
+            gt_data_filenames.append(f'data_deep/data3/gt/{i}.csv')
+
     for (cur_imu_data_filename, cur_gt_data_filename) in zip(imu_data_filenames, gt_data_filenames):
         if args.dataset == 'oxiod':
             gyro_data, acc_data, pos_data, ori_data = load_oxiod_dataset(cur_imu_data_filename, cur_gt_data_filename)
         elif args.dataset == 'euroc':
             gyro_data, acc_data, pos_data, ori_data = load_euroc_mav_dataset(cur_imu_data_filename, cur_gt_data_filename)
+        elif args.dataset == 'cea':
+            gyro_data, acc_data, pos_data, ori_data = load_cea_dataset(cur_imu_data_filename, cur_gt_data_filename)
 
         [x_gyro, x_acc], [y_delta_p, y_delta_q], init_p, init_q = load_dataset_6d_quat(gyro_data, acc_data, pos_data, ori_data, window_size, stride)
         
         if args.dataset == 'oxiod':
             [yhat_delta_p, yhat_delta_q] = model.predict([x_gyro[0:200, :, :], x_acc[0:200, :, :]], batch_size=1, verbose=0)
         elif args.dataset == 'euroc':
+            [yhat_delta_p, yhat_delta_q] = model.predict([x_gyro, x_acc], batch_size=1, verbose=0)
+        elif args.dataset == 'cea':
             [yhat_delta_p, yhat_delta_q] = model.predict([x_gyro, x_acc], batch_size=1, verbose=0)
 
         gt_trajectory = generate_trajectory_6d_quat(init_p, init_q, y_delta_p, y_delta_q)
@@ -72,6 +87,9 @@ def main():
         if args.dataset == 'oxiod':
             pred_trajectory = pred_trajectory[0:200, :]
             gt_trajectory = gt_trajectory[0:200, :]
+        elif args.dataset == 'cea':
+            pred_trajectory = pred_trajectory
+            gt_trajectory = gt_trajectory
 
         trajectory_rmse = np.sqrt(np.mean(np.square(np.linalg.norm(pred_trajectory - gt_trajectory, axis=-1))))
 

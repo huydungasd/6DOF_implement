@@ -41,6 +41,19 @@ def load_oxiod_dataset(imu_data_filename, gt_data_filename):
     return gyro_data, acc_data, pos_data, ori_data
 
 
+def load_cea_dataset(imu_data_filename, gt_data_filename):
+    imu_data = pd.read_csv(imu_data_filename).values
+    gt_data = pd.read_csv(gt_data_filename).values
+
+    gyro_data = imu_data[:, 7:10]
+    acc_data = imu_data[:, 1:4]
+    
+    pos_data = gt_data[:, 1:4]
+    ori_data = gt_data[:, 4:8]
+
+    return gyro_data, acc_data, pos_data, ori_data
+
+
 def force_quaternion_uniqueness(q):
 
     q_data = quaternion.as_float_array(q)

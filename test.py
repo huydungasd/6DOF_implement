@@ -12,7 +12,7 @@ from util import *
 
 def main():
     parser = argparse.ArgumentParser()
-    parser.add_argument('dataset', choices=['oxiod', 'euroc'], help='Training dataset name (\'oxiod\' or \'euroc\')')
+    parser.add_argument('dataset', choices=['oxiod', 'euroc', 'cea'], help='Training dataset name (\'oxiod\' or \'euroc\' or \'cea\')')
     parser.add_argument('model', help='Model path')
     parser.add_argument('input', help='Input sequence path (e.g. \"Oxford Inertial Odometry Dataset/handheld/data4/syn/imu1.csv\" for OxIOD, \"MH_02_easy/mav0/imu0/data.csv\" for EuRoC)')
     parser.add_argument('gt', help='Ground truth path (e.g. \"Oxford Inertial Odometry Dataset/handheld/data4/syn/vi1.csv\" for OxIOD, \"MH_02_easy/mav0/state_groundtruth_estimate0/data.csv\" for EuRoC)')
@@ -28,6 +28,8 @@ def main():
         gyro_data, acc_data, pos_data, ori_data = load_oxiod_dataset(args.input, args.gt)
     elif args.dataset == 'euroc':
         gyro_data, acc_data, pos_data, ori_data = load_euroc_mav_dataset(args.input, args.gt)
+    elif args.dataset == 'cea':
+        gyro_data, acc_data, pos_data, ori_data = load_cea_dataset(args.input, args.gt)
 
     [x_gyro, x_acc], [y_delta_p, y_delta_q], init_p, init_q = load_dataset_6d_quat(gyro_data, acc_data, pos_data, ori_data, window_size, stride)
 
@@ -35,11 +37,15 @@ def main():
         [yhat_delta_p, yhat_delta_q] = model.predict([x_gyro[0:args.n_points_test, :, :], x_acc[0:args.n_points_test, :, :]], batch_size=1, verbose=1)
     elif args.dataset == 'euroc':
         [yhat_delta_p, yhat_delta_q] = model.predict([x_gyro, x_acc], batch_size=1, verbose=1)
+    elif args.dataset == 'cea':
+        [yhat_delta_p, yhat_delta_q] = model.predict(   [x_gyro[0:args.n_points_test, :, :], x_acc[0:args.n_points_test, :, :]], batch_size=1, verbose=1)
 
     gt_trajectory = generate_trajectory_6d_quat(init_p, init_q, y_delta_p, y_delta_q)
     pred_trajectory = generate_trajectory_6d_quat(init_p, init_q, yhat_delta_p, yhat_delta_q)
 
     if args.dataset == 'oxiod':
+        gt_trajectory = gt_trajectory[0:args.n_points_test, :]
+    elif args.dataset == 'cea':
         gt_trajectory = gt_trajectory[0:args.n_points_test, :]
 
     matplotlib.rcParams.update({'font.size': 18})
