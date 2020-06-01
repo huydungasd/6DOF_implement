@@ -97,6 +97,21 @@ def main():
         for i in range(90):
             imu_data_filenames.append(f'data_deep/data3/imu/{i}.csv')
             gt_data_filenames.append(f'data_deep/data3/gt/{i}.csv')
+        for i in range(135):
+            imu_data_filenames.append(f'data_deep/data4/imu/{i}.csv')
+            gt_data_filenames.append(f'data_deep/data4/gt/{i}.csv')
+        for i in range(135):
+            imu_data_filenames.append(f'data_deep/data5/imu/{i}.csv')
+            gt_data_filenames.append(f'data_deep/data5/gt/{i}.csv')
+        for i in range(30):
+            imu_data_filenames.append(f'data_deep/data6/imu/{i}.csv')
+            gt_data_filenames.append(f'data_deep/data6/gt/{i}.csv')
+        for i in range(100):
+            imu_data_filenames.append(f'data_deep/data7/imu/{i}.csv')
+            gt_data_filenames.append(f'data_deep/data7/gt/{i}.csv')
+        for i in range(130):
+            imu_data_filenames.append(f'data_deep/data8/imu/{i}.csv')
+            gt_data_filenames.append(f'data_deep/data8/gt/{i}.csv')
 
     for i, (cur_imu_data_filename, cur_gt_data_filename) in enumerate(zip(imu_data_filenames, gt_data_filenames)):
         if args.dataset == 'oxiod':
