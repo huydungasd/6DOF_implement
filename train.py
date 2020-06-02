@@ -150,8 +150,9 @@ def main():
     model_checkpoint = ModelCheckpoint('model_checkpoint.hdf5', monitor='val_loss', save_best_only=True, verbose=1)
     tensorboard = TensorBoard(log_dir="logs/{}".format(time()))
 
-    history = train_model.fit([x_gyro, x_acc, y_delta_p, y_delta_q], epochs=500, batch_size=32, verbose=1, callbacks=[model_checkpoint, tensorboard], validation_split=0.1)
+    history = train_model.fit([x_gyro, x_acc, y_delta_p, y_delta_q], epochs=1, batch_size=32, verbose=1, callbacks=[model_checkpoint, tensorboard], validation_split=0.1)
 
+    train_model.save('%s_with_custom_layer.hdf5' % args.output)
     train_model.load_weights('model_checkpoint.hdf5')
 
     pred_model = create_pred_model_6d_quat(window_size)
