@@ -9,20 +9,23 @@ from tensorflow.keras.losses import mean_absolute_error
 from tensorflow.keras import backend as K
 
 def quaternion_phi_3_error(y_true, y_pred):
+    assert 0 == 1
     return tf.acos(K.abs(K.batch_dot(y_true, K.l2_normalize(y_pred, axis=-1), axes=-1)))
 
 
 def quaternion_phi_4_error(y_true, y_pred):
+    assert 0 == 1
     return 1 - K.abs(K.batch_dot(y_true, K.l2_normalize(y_pred, axis=-1), axes=-1))
 
 
 def quaternion_log_phi_4_error(y_true, y_pred):
+    assert 0 == 1
     return K.log(1e-4 + quaternion_phi_4_error(y_true, y_pred))
 
 
 def quat_mult_error(y_true, y_pred):
-    q_hat = tfq.Quaternion(y_true)
-    q = tfq.Quaternion(y_pred).normalized()
+    q_hat = tfq.Quaternion(tf.gather(y_true, [3, 0, 1, 2], axis=1))
+    q = tfq.Quaternion(tf.gather(y_pred, [3, 0, 1, 2], axis=1)).normalized()
     q_prod = q * q_hat.conjugate()
     w, x, y, z = tf.split(q_prod, num_or_size_splits=4, axis=-1)
     return tf.abs(tf.multiply(2.0, tf.concat(values=[x, y, z], axis=-1)))
