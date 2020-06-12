@@ -1,5 +1,6 @@
 import argparse
 import numpy as np
+import matplotlib.pyplot as plt
 
 from tensorflow.keras.models import load_model
 from sklearn.preprocessing import MinMaxScaler
@@ -63,7 +64,23 @@ def main():
         for i in range(90, 100):
             imu_data_filenames.append(f'data_deep/data3/imu/{i}.csv')
             gt_data_filenames.append(f'data_deep/data3/gt/{i}.csv')
+        for i in range(135, 151):
+            imu_data_filenames.append(f'data_deep/data4/imu/{i}.csv')
+            gt_data_filenames.append(f'data_deep/data4/gt/{i}.csv')
+        for i in range(135, 151):
+            imu_data_filenames.append(f'data_deep/data5/imu/{i}.csv')
+            gt_data_filenames.append(f'data_deep/data5/gt/{i}.csv')
+        for i in range(25, 30):
+            imu_data_filenames.append(f'data_deep/data6/imu/{i}.csv')
+            gt_data_filenames.append(f'data_deep/data6/gt/{i}.csv')
+        for i in range(100, 120):
+            imu_data_filenames.append(f'data_deep/data7/imu/{i}.csv')
+            gt_data_filenames.append(f'data_deep/data7/gt/{i}.csv')
+        for i in range(130, 144):
+            imu_data_filenames.append(f'data_deep/data8/imu/{i}.csv')
+            gt_data_filenames.append(f'data_deep/data8/gt/{i}.csv')
 
+    traj, x_rmses, y_rmses, z_rmses = [], [], [], []
     for (cur_imu_data_filename, cur_gt_data_filename) in zip(imu_data_filenames, gt_data_filenames):
         if args.dataset == 'oxiod':
             gyro_data, acc_data, pos_data, ori_data = load_oxiod_dataset(cur_imu_data_filename, cur_gt_data_filename)
@@ -92,8 +109,19 @@ def main():
             gt_trajectory = gt_trajectory
 
         trajectory_rmse = np.sqrt(np.mean(np.square(np.linalg.norm(pred_trajectory - gt_trajectory, axis=-1))))
+        x_rmse = np.sqrt(np.mean(np.square(np.linalg.norm(pred_trajectory[:, 0] - gt_trajectory[:, 0], axis=-1))))
+        y_rmse = np.sqrt(np.mean(np.square(np.linalg.norm(pred_trajectory[:, 1] - gt_trajectory[:, 1], axis=-1))))
+        z_rmse = np.sqrt(np.mean(np.square(np.linalg.norm(pred_trajectory[:, 2] - gt_trajectory[:, 2], axis=-1))))
 
-        print('Trajectory RMSE, sequence %s: %f' % (cur_imu_data_filename, trajectory_rmse))
+        print(f'Trajectory RMSE, sequence {cur_imu_data_filename}: {trajectory_rmse}\nx:{x_rmse}\ty:{y_rmse}\tz:{z_rmse}')
+        traj.append(trajectory_rmse)
+        x_rmses.append(x_rmse)
+        y_rmses.append(y_rmse)
+        z_rmses.append(z_rmse)
+    
+    plt.figure()
+    plt.boxplot([traj, x_rmses, y_rmses, z_rmses], labels=['trajectory rmse', 'x rmse', 'y rmse', 'z rmse'])
+    plt.show()
 
 if __name__ == '__main__':
     main()

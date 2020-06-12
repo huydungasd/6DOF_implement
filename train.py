@@ -116,18 +116,27 @@ def main():
     for i, (cur_imu_data_filename, cur_gt_data_filename) in enumerate(zip(imu_data_filenames, gt_data_filenames)):
         if args.dataset == 'oxiod':
             cur_gyro_data, cur_acc_data, cur_pos_data, cur_ori_data = load_oxiod_dataset(cur_imu_data_filename, cur_gt_data_filename)
+            [cur_x_gyro, cur_x_acc], [cur_y_delta_p, cur_y_delta_q], init_p, init_q = load_dataset_6d_quat(cur_gyro_data, cur_acc_data, cur_pos_data, cur_ori_data, window_size, stride)
+            x_gyro.append(cur_x_gyro)
+            x_acc.append(cur_x_acc)
+            y_delta_p.append(cur_y_delta_p)
+            y_delta_q.append(cur_y_delta_q)
+        
         elif args.dataset == 'euroc':
             cur_gyro_data, cur_acc_data, cur_pos_data, cur_ori_data = load_euroc_mav_dataset(cur_imu_data_filename, cur_gt_data_filename)
+            [cur_x_gyro, cur_x_acc], [cur_y_delta_p, cur_y_delta_q], init_p, init_q = load_dataset_6d_quat(cur_gyro_data, cur_acc_data, cur_pos_data, cur_ori_data, window_size, stride)
+            x_gyro.append(cur_x_gyro)
+            x_acc.append(cur_x_acc)
+            y_delta_p.append(cur_y_delta_p)
+            y_delta_q.append(cur_y_delta_q)
+
         elif args.dataset == 'cea':
             cur_gyro_data, cur_acc_data, cur_pos_data, cur_ori_data = load_cea_dataset(cur_imu_data_filename, cur_gt_data_filename)
-
-        [cur_x_gyro, cur_x_acc], [cur_y_delta_p, cur_y_delta_q], init_p, init_q = load_dataset_6d_quat(cur_gyro_data, cur_acc_data, cur_pos_data, cur_ori_data, window_size, stride)
-
-        x_gyro.append(cur_x_gyro)
-        x_acc.append(cur_x_acc)
-
-        y_delta_p.append(cur_y_delta_p)
-        y_delta_q.append(cur_y_delta_q)
+            [cur_x_gyro, cur_x_acc], [cur_y_delta_p, cur_y_delta_q], init_p, init_q = load_dataset_6d_quat(cur_gyro_data, cur_acc_data, cur_pos_data, cur_ori_data, window_size, stride)
+            x_gyro.append(cur_x_gyro)
+            x_acc.append(cur_x_acc)
+            y_delta_p.append(cur_y_delta_p)
+            y_delta_q.append(cur_y_delta_q)
 
     x_gyro = np.vstack(x_gyro)
     x_acc = np.vstack(x_acc)

@@ -4,6 +4,7 @@ import quaternion
 import scipy.interpolate
 
 from tensorflow.keras.utils import Sequence
+from scipy.spatial.transform import Rotation
 
 
 def interpolate_3dvector_linear(input, input_timestamp, output_timestamp):
@@ -56,25 +57,21 @@ def load_cea_dataset(imu_data_filename, gt_data_filename):
 
 def force_quaternion_uniqueness(q):
 
-    q_data = quaternion.as_float_array(q)
-
-    if np.absolute(q_data[0]) > 1e-05:
-        if q_data[0] < 0:
+    if np.absolute(q[3]) > 1e-05:
+        if q[3] < 0:
+            return -q
+    elif np.absolute(q[0]) > 1e-05:
+        if q[0] < 0:
             return -q
         else:
             return q
-    elif np.absolute(q_data[1]) > 1e-05:
-        if q_data[1] < 0:
-            return -q
-        else:
-            return q
-    elif np.absolute(q_data[2]) > 1e-05:
-        if q_data[2] < 0:
+    elif np.absolute(q[1]) > 1e-05:
+        if q[1] < 0:
             return -q
         else:
             return q
     else:
-        if q_data[3] < 0:
+        if q[2] < 0:
             return -q
         else:
             return q
@@ -152,7 +149,7 @@ def load_dataset_6d_quat(gyro_data, acc_data, pos_data, ori_data, window_size=20
     #gyro_acc_data = np.concatenate([gyro_data, acc_data], axis=1)
 
     init_p = pos_data[window_size//2 - stride//2, :]
-    init_q = ori_data[window_size//2 - stride//2, :]
+    init_q = ori_data[window_size//2 - stride//2, [1, 2, 3, 0]]
 
     #x = []
     x_gyro = []
@@ -168,15 +165,15 @@ def load_dataset_6d_quat(gyro_data, acc_data, pos_data, ori_data, window_size=20
         p_a = pos_data[idx + window_size//2 - stride//2, :]
         p_b = pos_data[idx + window_size//2 + stride//2, :]
 
-        q_a = quaternion.from_float_array(ori_data[idx + window_size//2 - stride//2, :])
-        q_b = quaternion.from_float_array(ori_data[idx + window_size//2 + stride//2, :])
+        q_a = Rotation.from_quat(ori_data[idx + window_size//2 - stride//2, [1, 2, 3, 0]])
+        q_b = Rotation.from_quat(ori_data[idx + window_size//2 + stride//2, [1, 2, 3, 0]])
 
-        delta_p = np.matmul(quaternion.as_rotation_matrix(q_a).T, (p_b.T - p_a.T)).T
-
-        delta_q = force_quaternion_uniqueness(q_a.conjugate() * q_b)
+        delta_p = (q_a.inv().as_matrix() @ (p_b.T - p_a.T)).T
+        delta_q = q_a.inv() * q_b
+        delta_q = force_quaternion_uniqueness(delta_q.as_quat())
 
         y_delta_p.append(delta_p)
-        y_delta_q.append(quaternion.as_float_array(delta_q))
+        y_delta_q.append(delta_q)
 
 
     #x = np.reshape(x, (len(x), x[0].shape[0], x[0].shape[1]))

@@ -1,16 +1,18 @@
 import numpy as np
-import quaternion
+
+from scipy.spatial.transform import Rotation
 
 
 def generate_trajectory_6d_quat(init_p, init_q, y_delta_p, y_delta_q):
     cur_p = np.array(init_p)
-    cur_q = quaternion.from_float_array(init_q)
+    cur_q = Rotation.from_quat(init_q)
+    print(f"init ori: {cur_q.as_euler('xyz', degrees=True)}")
     pred_p = []
     pred_p.append(np.array(cur_p))
 
     for [delta_p, delta_q] in zip(y_delta_p, y_delta_q):
-        cur_p = cur_p + np.matmul(quaternion.as_rotation_matrix(cur_q), delta_p.T).T
-        cur_q = cur_q * quaternion.from_float_array(delta_q).normalized()
+        cur_p = cur_p + (cur_q.as_matrix() @ delta_p.T).T
+        cur_q = cur_q * Rotation.from_quat(delta_q)
         pred_p.append(np.array(cur_p))
 
     return np.reshape(pred_p, (len(pred_p), 3))
@@ -32,3 +34,22 @@ def generate_trajectory_3d(init_l, init_theta, init_psi, y_delta_l, y_delta_thet
         pred_l.append(np.array(cur_l))
 
     return np.reshape(pred_l, (len(pred_l), 3))
+
+def quat_to_euler(quat):
+    euler = []
+    for i in range(len(quat)):
+        r = Rotation.from_quat(quat[i])
+        angle = r.as_euler('xyz', degrees=True)
+        euler.append(angle)
+    return np.reshape(euler, (len(euler), 3))
+
+def generate_orientation(init_q, y_delta_q):
+    cur_q = Rotation.from_quat(init_q)
+    pred_q = []
+    pred_q.append(cur_q.as_quat())
+
+    for delta_q in y_delta_q:
+        cur_q = cur_q * Rotation.from_quat(delta_q)
+        pred_q.append(cur_q.as_quat())
+    
+    return np.reshape(pred_q, (len(pred_q), 4))
