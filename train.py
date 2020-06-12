@@ -157,7 +157,7 @@ def main():
     train_model.compile(optimizer=Adam(lr_schedule), loss=None)
 
     model_checkpoint = ModelCheckpoint('model_checkpoint.hdf5', monitor='val_loss', save_best_only=True, verbose=1)
-    tensorboard = TensorBoard(log_dir="logs/{}".format(time()))
+    tensorboard = TensorBoard(log_dir="logs/{}".format(time()), profile_batch=0)
 
     history = train_model.fit([x_gyro, x_acc, y_delta_p, y_delta_q], epochs=700, batch_size=32, verbose=1, callbacks=[model_checkpoint, tensorboard], validation_split=0.1)
 
