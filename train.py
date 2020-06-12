@@ -146,7 +146,7 @@ def main():
 
     x_gyro, x_acc, y_delta_p, y_delta_q = shuffle(x_gyro, x_acc, y_delta_p, y_delta_q)
 
-    initial_learning_rate = 0.0003
+    initial_learning_rate = 3e-4
     lr_schedule = ExponentialDecay(
         initial_learning_rate,
         decay_steps=90000,
@@ -156,26 +156,35 @@ def main():
     train_model = create_train_model_6d_quat(pred_model, window_size)
     train_model.compile(optimizer=Adam(lr_schedule), loss=None)
 
+    filepath = "./model_checkpoint.hdf5"
     model_checkpoint = ModelCheckpoint('model_checkpoint.hdf5', monitor='val_loss', save_best_only=True, verbose=1)
     tensorboard = TensorBoard(log_dir="logs/{}".format(time()), profile_batch=0)
 
-    history = train_model.fit([x_gyro, x_acc, y_delta_p, y_delta_q], epochs=700, batch_size=32, verbose=1, callbacks=[model_checkpoint, tensorboard], validation_split=0.1)
+    try:
+        history = train_model.fit([x_gyro, x_acc, y_delta_p, y_delta_q], epochs=500, batch_size=32, verbose=1, callbacks=[model_checkpoint, tensorboard], validation_split=0.1)
+        train_model.load_weights(filepath)
+        train_model.save('last_best_model_with_custom_layer.hdf5')
+        pred_model = create_pred_model_6d_quat(window_size)
+        pred_model.set_weights(train_model.get_weights()[:-2])
+        pred_model.save('%s.hdf5' % args.output)
 
-    train_model.save('%s_with_custom_layer.hdf5' % args.output)
-    train_model.load_weights('model_checkpoint.hdf5')
+        plt.plot(history.history['loss'])
+        plt.plot(history.history['val_loss'])
+        plt.title('Model loss')
+        plt.ylabel('Loss')
+        plt.xlabel('Epoch')
+        plt.legend(['Train', 'Validation'], loc='upper left')
+        plt.show()
 
-    pred_model = create_pred_model_6d_quat(window_size)
-    pred_model.set_weights(train_model.get_weights()[:-2])
-    pred_model.save('%s.hdf5' % args.output)
-    #pred_model.save_weights('%s.hdf5' % args.output, save_format = "tf")
+    except KeyboardInterrupt:
+        train_model.load_weights(filepath)
+        train_model.save('last_best_model_with_custom_layer.hdf5')
+        pred_model = create_pred_model_6d_quat(window_size)
+        pred_model.set_weights(train_model.get_weights()[:-2])
+        pred_model.save('%s.hdf5' % args.output)
+        print('Early terminate')
 
-    plt.plot(history.history['loss'])
-    plt.plot(history.history['val_loss'])
-    plt.title('Model loss')
-    plt.ylabel('Loss')
-    plt.xlabel('Epoch')
-    plt.legend(['Train', 'Validation'], loc='upper left')
-    plt.show()
+    print('Training complete')
 
 if __name__ == '__main__':
     main()
