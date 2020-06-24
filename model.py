@@ -7,6 +7,8 @@ from tensorflow.keras.initializers import Constant
 from tensorflow.keras.optimizers import Adam
 from tensorflow.keras.losses import mean_absolute_error
 from tensorflow.keras import backend as K
+from dataset import *
+from util import *
 
 def quaternion_phi_3_error(y_true, y_pred):
     assert 0 == 1

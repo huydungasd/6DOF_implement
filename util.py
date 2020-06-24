@@ -6,7 +6,6 @@ from scipy.spatial.transform import Rotation
 def generate_trajectory_6d_quat(init_p, init_q, y_delta_p, y_delta_q):
     cur_p = np.array(init_p)
     cur_q = Rotation.from_quat(init_q)
-    print(f"init ori: {cur_q.as_euler('xyz', degrees=True)}")
     pred_p = []
     pred_p.append(np.array(cur_p))
 

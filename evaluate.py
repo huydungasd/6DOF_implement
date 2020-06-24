@@ -18,7 +18,7 @@ def main():
 
     model = load_model(args.model)
 
-    window_size = 200
+    window_size = 100
     stride = 10
 
     imu_data_filenames = []
@@ -77,10 +77,11 @@ def main():
             imu_data_filenames.append(f'data_deep/data7/imu/{i}.csv')
             gt_data_filenames.append(f'data_deep/data7/gt/{i}.csv')
         for i in range(130, 144):
-            imu_data_filenames.append(f'data_deep/data8/imu/{i}.csv')
-            gt_data_filenames.append(f'data_deep/data8/gt/{i}.csv')
+            if i != 137:
+                imu_data_filenames.append(f'data_deep/data8/imu/{i}.csv')
+                gt_data_filenames.append(f'data_deep/data8/gt/{i}.csv')
 
-    traj, x_rmses, y_rmses, z_rmses = [], [], [], []
+    traj, xy_rmses, yz_rmses, zx_rmses = [], [], [], []
     for (cur_imu_data_filename, cur_gt_data_filename) in zip(imu_data_filenames, gt_data_filenames):
         if args.dataset == 'oxiod':
             gyro_data, acc_data, pos_data, ori_data = load_oxiod_dataset(cur_imu_data_filename, cur_gt_data_filename)
@@ -98,6 +99,7 @@ def main():
         elif args.dataset == 'cea':
             [yhat_delta_p, yhat_delta_q] = model.predict([x_gyro, x_acc], batch_size=1, verbose=0)
 
+        print(yhat_delta_p.shape)
         gt_trajectory = generate_trajectory_6d_quat(init_p, init_q, y_delta_p, y_delta_q)
         pred_trajectory = generate_trajectory_6d_quat(init_p, init_q, yhat_delta_p, yhat_delta_q)
 
@@ -109,18 +111,20 @@ def main():
             gt_trajectory = gt_trajectory
 
         trajectory_rmse = np.sqrt(np.mean(np.square(np.linalg.norm(pred_trajectory - gt_trajectory, axis=-1))))
-        x_rmse = np.sqrt(np.mean(np.square(np.linalg.norm(pred_trajectory[:, 0] - gt_trajectory[:, 0], axis=-1))))
-        y_rmse = np.sqrt(np.mean(np.square(np.linalg.norm(pred_trajectory[:, 1] - gt_trajectory[:, 1], axis=-1))))
-        z_rmse = np.sqrt(np.mean(np.square(np.linalg.norm(pred_trajectory[:, 2] - gt_trajectory[:, 2], axis=-1))))
+        xy_rmse = np.sqrt(np.mean(np.square(np.linalg.norm(pred_trajectory[:, [0, 1]] - gt_trajectory[:, [0, 1]], axis=-1))))
+        yz_rmse = np.sqrt(np.mean(np.square(np.linalg.norm(pred_trajectory[:, [1, 2]] - gt_trajectory[:, [1, 2]], axis=-1))))
+        zx_rmse = np.sqrt(np.mean(np.square(np.linalg.norm(pred_trajectory[:, [2, 0]] - gt_trajectory[:, [2, 0]], axis=-1))))
 
-        print(f'Trajectory RMSE, sequence {cur_imu_data_filename}: {trajectory_rmse}\nx:{x_rmse}\ty:{y_rmse}\tz:{z_rmse}')
+        print(f'Trajectory RMSE, sequence {cur_imu_data_filename}: {trajectory_rmse}\nx:{xy_rmse}\ty:{yz_rmse}\tz:{zx_rmse}')
         traj.append(trajectory_rmse)
-        x_rmses.append(x_rmse)
-        y_rmses.append(y_rmse)
-        z_rmses.append(z_rmse)
+        if trajectory_rmse > 0.06:
+            print('\n\n\n')
+        xy_rmses.append(xy_rmse)
+        yz_rmses.append(yz_rmse)
+        zx_rmses.append(zx_rmse)
     
     plt.figure()
-    plt.boxplot([traj, x_rmses, y_rmses, z_rmses], labels=['trajectory rmse', 'x rmse', 'y rmse', 'z rmse'])
+    plt.boxplot([traj, xy_rmses, yz_rmses, zx_rmses], labels=['trajectory rmse', 'xy rmse', 'yz rmse', 'zx rmse'])
     plt.show()
 
 if __name__ == '__main__':

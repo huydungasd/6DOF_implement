@@ -23,7 +23,7 @@ def main():
 
     np.random.seed(0)
 
-    window_size = 200
+    window_size = 100
     stride = 10
 
     x_gyro = []
