@@ -23,7 +23,7 @@ def main():
 
     np.random.seed(0)
 
-    window_size = 100
+    window_size = 50
     stride = 10
 
     x_gyro = []
@@ -88,30 +88,39 @@ def main():
         gt_data_filenames.append('V2_03_difficult/mav0/state_groundtruth_estimate0/data.csv')
 
     elif args.dataset == 'cea':
-        for i in range(65):
-            imu_data_filenames.append(f'data_deep/data1/imu/{i}.csv')
-            gt_data_filenames.append(f'data_deep/data1/gt/{i}.csv')
-        for i in range(85):
-            imu_data_filenames.append(f'data_deep/data2/imu/{i}.csv')
-            gt_data_filenames.append(f'data_deep/data2/gt/{i}.csv')
-        for i in range(90):
-            imu_data_filenames.append(f'data_deep/data3/imu/{i}.csv')
-            gt_data_filenames.append(f'data_deep/data3/gt/{i}.csv')
-        for i in range(135):
-            imu_data_filenames.append(f'data_deep/data4/imu/{i}.csv')
-            gt_data_filenames.append(f'data_deep/data4/gt/{i}.csv')
-        for i in range(135):
-            imu_data_filenames.append(f'data_deep/data5/imu/{i}.csv')
-            gt_data_filenames.append(f'data_deep/data5/gt/{i}.csv')
-        for i in range(30):
-            imu_data_filenames.append(f'data_deep/data6/imu/{i}.csv')
-            gt_data_filenames.append(f'data_deep/data6/gt/{i}.csv')
-        for i in range(100):
-            imu_data_filenames.append(f'data_deep/data7/imu/{i}.csv')
-            gt_data_filenames.append(f'data_deep/data7/gt/{i}.csv')
-        for i in range(130):
-            imu_data_filenames.append(f'data_deep/data8/imu/{i}.csv')
-            gt_data_filenames.append(f'data_deep/data8/gt/{i}.csv')
+        # for i in range(38):
+        #     imu_data_filenames.append(f'H:\\data\\0\\data_deep\\imu\\{i}.csv')
+        #     gt_data_filenames.append(f'H:\\data\\0\\data_deep\\gt\\{i}.csv')
+        # for i in range(46):
+        #     imu_data_filenames.append(f'H:\\data\\1\\data_deep\\imu\\{i}.csv')
+        #     gt_data_filenames.append(f'H:\\data\\1\\data_deep\\gt\\{i}.csv')
+        # for i in range(49):
+        #     imu_data_filenames.append(f'H:\\data\\2\\data_deep\\imu\\{i}.csv')
+        #     gt_data_filenames.append(f'H:\\data\\2\\data_deep\\gt\\{i}.csv')
+        # for i in range(45):
+        #     imu_data_filenames.append(f'H:\\data\\3\\data_deep\\imu\\{i}.csv')
+        #     gt_data_filenames.append(f'H:\\data\\3\\data_deep\\gt\\{i}.csv')
+        # for i in range(47):
+        #     imu_data_filenames.append(f'H:\\data\\4\\data_deep\\imu\\{i}.csv')
+        #     gt_data_filenames.append(f'H:\\data\\4\\data_deep\\gt\\{i}.csv')
+        # for i in range(46):
+        #     imu_data_filenames.append(f'H:\\data\\5\\data_deep\\imu\\{i}.csv')
+        #     gt_data_filenames.append(f'H:\\data\\5\\data_deep\\gt\\{i}.csv')
+        # for i in range(47):
+        #     imu_data_filenames.append(f'H:\\data\\6\\data_deep\\imu\\{i}.csv')
+        #     gt_data_filenames.append(f'H:\\data\\6\\data_deep\\gt\\{i}.csv')
+        # for i in range(51):
+        #     imu_data_filenames.append(f'H:\\data\\7\\data_deep\\imu\\{i}.csv')
+        #     gt_data_filenames.append(f'H:\\data\\7\\data_deep\\gt\\{i}.csv')
+        # for i in range(54):
+        #     imu_data_filenames.append(f'H:\\data\\8\\data_deep\\imu\\{i}.csv')
+        #     gt_data_filenames.append(f'H:\\data\\8\\data_deep\\gt\\{i}.csv')
+        # for i in range(50):
+        #     imu_data_filenames.append(f'H:\\data\\9\\data_deep\\imu\\{i}.csv')
+        #     gt_data_filenames.append(f'H:\\data\\9\\data_deep\\gt\\{i}.csv')
+        for i in range(10):
+            imu_data_filenames.append(f'H:\\data\\{i}\\imu.csv')
+            gt_data_filenames.append(f'H:\\data\\{i}\\gt.csv')
 
     for i, (cur_imu_data_filename, cur_gt_data_filename) in enumerate(zip(imu_data_filenames, gt_data_filenames)):
         if args.dataset == 'oxiod':
@@ -156,12 +165,12 @@ def main():
     train_model = create_train_model_6d_quat(pred_model, window_size)
     train_model.compile(optimizer=Adam(lr_schedule), loss=None)
 
-    filepath = "./model_checkpoint.hdf5"
+    filepath = "model_checkpoint.hdf5"
     model_checkpoint = ModelCheckpoint('model_checkpoint.hdf5', monitor='val_loss', save_best_only=True, verbose=1)
-    tensorboard = TensorBoard(log_dir="logs/{}".format(time()), profile_batch=0)
+    tensorboard = TensorBoard(log_dir="logs\{}".format(time()), profile_batch=0)
 
     try:
-        history = train_model.fit([x_gyro, x_acc, y_delta_p, y_delta_q], epochs=500, batch_size=32, verbose=1, callbacks=[model_checkpoint, tensorboard], validation_split=0.1)
+        history = train_model.fit([x_gyro, x_acc, y_delta_p, y_delta_q], epochs=200, batch_size=32, verbose=1, callbacks=[model_checkpoint, tensorboard], validation_split=0.1)
         train_model.load_weights(filepath)
         train_model.save('last_best_model_with_custom_layer.hdf5')
         pred_model = create_pred_model_6d_quat(window_size)

@@ -46,11 +46,11 @@ def load_cea_dataset(imu_data_filename, gt_data_filename):
     imu_data = pd.read_csv(imu_data_filename).values
     gt_data = pd.read_csv(gt_data_filename).values
 
-    gyro_data = imu_data[:200, 7:10]
-    acc_data = imu_data[:200, 1:4]
+    gyro_data = imu_data[:, 4:7]
+    acc_data = imu_data[:, 1:4]
     
-    pos_data = gt_data[:200, 1:4]
-    ori_data = gt_data[:200, 4:8]
+    pos_data = gt_data[:, 1:4]
+    ori_data = gt_data[:, 4:8]
 
     return gyro_data, acc_data, pos_data, ori_data
 

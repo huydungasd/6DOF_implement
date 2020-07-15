@@ -19,7 +19,7 @@ def main():
     parser.add_argument('n_points_test', type=int, help='Number of points to visualize')
     args = parser.parse_args()
 
-    window_size = 100
+    window_size = 80
     stride = 10
 
     model = load_model(args.model)

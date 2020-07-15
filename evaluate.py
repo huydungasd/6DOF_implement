@@ -4,7 +4,7 @@ import matplotlib.pyplot as plt
 
 from tensorflow.keras.models import load_model
 from sklearn.preprocessing import MinMaxScaler
-from sklearn.externals import joblib
+import joblib
 
 from dataset import *
 from util import *
@@ -18,7 +18,7 @@ def main():
 
     model = load_model(args.model)
 
-    window_size = 100
+    window_size = 80
     stride = 10
 
     imu_data_filenames = []
@@ -55,31 +55,36 @@ def main():
         gt_data_filenames.append('V1_01_easy/mav0/state_groundtruth_estimate0/data.csv')
 
     elif args.dataset == 'cea':
-        for i in range(65, 73):
-            imu_data_filenames.append(f'data_deep/data1/imu/{i}.csv')
-            gt_data_filenames.append(f'data_deep/data1/gt/{i}.csv')
-        for i in range(85, 95):
-            imu_data_filenames.append(f'data_deep/data2/imu/{i}.csv')
-            gt_data_filenames.append(f'data_deep/data2/gt/{i}.csv')
-        for i in range(90, 100):
-            imu_data_filenames.append(f'data_deep/data3/imu/{i}.csv')
-            gt_data_filenames.append(f'data_deep/data3/gt/{i}.csv')
-        for i in range(135, 151):
-            imu_data_filenames.append(f'data_deep/data4/imu/{i}.csv')
-            gt_data_filenames.append(f'data_deep/data4/gt/{i}.csv')
-        for i in range(135, 151):
-            imu_data_filenames.append(f'data_deep/data5/imu/{i}.csv')
-            gt_data_filenames.append(f'data_deep/data5/gt/{i}.csv')
-        for i in range(25, 30):
-            imu_data_filenames.append(f'data_deep/data6/imu/{i}.csv')
-            gt_data_filenames.append(f'data_deep/data6/gt/{i}.csv')
-        for i in range(100, 120):
-            imu_data_filenames.append(f'data_deep/data7/imu/{i}.csv')
-            gt_data_filenames.append(f'data_deep/data7/gt/{i}.csv')
-        for i in range(130, 144):
-            if i != 137:
-                imu_data_filenames.append(f'data_deep/data8/imu/{i}.csv')
-                gt_data_filenames.append(f'data_deep/data8/gt/{i}.csv')
+        for i in range(38,42):
+            imu_data_filenames.append(f'H:\\data\\0\\data_deep\\imu\\{i}.csv')
+            gt_data_filenames.append(f'H:\\data\\0\\data_deep\\gt\\{i}.csv')
+        for i in range(46,51):
+            imu_data_filenames.append(f'H:\\data\\1\\data_deep\\imu\\{i}.csv')
+            gt_data_filenames.append(f'H:\\data\\1\\data_deep\\gt\\{i}.csv')
+        for i in range(49,54):
+            imu_data_filenames.append(f'H:\\data\\2\\data_deep\\imu\\{i}.csv')
+            gt_data_filenames.append(f'H:\\data\\2\\data_deep\\gt\\{i}.csv')
+        for i in range(45,50):
+            imu_data_filenames.append(f'H:\\data\\3\\data_deep\\imu\\{i}.csv')
+            gt_data_filenames.append(f'H:\\data\\3\\data_deep\\gt\\{i}.csv')
+        for i in range(47,52):
+            imu_data_filenames.append(f'H:\\data\\4\\data_deep\\imu\\{i}.csv')
+            gt_data_filenames.append(f'H:\\data\\4\\data_deep\\gt\\{i}.csv')
+        for i in range(46,51):
+            imu_data_filenames.append(f'H:\\data\\5\\data_deep\\imu\\{i}.csv')
+            gt_data_filenames.append(f'H:\\data\\5\\data_deep\\gt\\{i}.csv')
+        for i in range(47,52):
+            imu_data_filenames.append(f'H:\\data\\6\\data_deep\\imu\\{i}.csv')
+            gt_data_filenames.append(f'H:\\data\\6\\data_deep\\gt\\{i}.csv')
+        for i in range(51,57):
+            imu_data_filenames.append(f'H:\\data\\7\\data_deep\\imu\\{i}.csv')
+            gt_data_filenames.append(f'H:\\data\\7\\data_deep\\gt\\{i}.csv')
+        for i in range(54,60):
+            imu_data_filenames.append(f'H:\\data\\8\\data_deep\\imu\\{i}.csv')
+            gt_data_filenames.append(f'H:\\data\\8\\data_deep\\gt\\{i}.csv')
+        for i in range(50,56):
+            imu_data_filenames.append(f'H:\\data\\9\\data_deep\\imu\\{i}.csv')
+            gt_data_filenames.append(f'H:\\data\\9\\data_deep\\gt\\{i}.csv')
 
     traj, xy_rmses, yz_rmses, zx_rmses = [], [], [], []
     for (cur_imu_data_filename, cur_gt_data_filename) in zip(imu_data_filenames, gt_data_filenames):
