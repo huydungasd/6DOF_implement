@@ -1,3 +1,4 @@
+import os
 import argparse
 import numpy as np
 import matplotlib.pyplot as plt
@@ -18,7 +19,7 @@ def main():
 
     model = load_model(args.model)
 
-    window_size = 80
+    window_size = 150
     stride = 10
 
     imu_data_filenames = []
@@ -55,38 +56,14 @@ def main():
         gt_data_filenames.append('V1_01_easy/mav0/state_groundtruth_estimate0/data.csv')
 
     elif args.dataset == 'cea':
-        for i in range(38,42):
-            imu_data_filenames.append(f'H:\\data\\0\\data_deep\\imu\\{i}.csv')
-            gt_data_filenames.append(f'H:\\data\\0\\data_deep\\gt\\{i}.csv')
-        for i in range(46,51):
-            imu_data_filenames.append(f'H:\\data\\1\\data_deep\\imu\\{i}.csv')
-            gt_data_filenames.append(f'H:\\data\\1\\data_deep\\gt\\{i}.csv')
-        for i in range(49,54):
-            imu_data_filenames.append(f'H:\\data\\2\\data_deep\\imu\\{i}.csv')
-            gt_data_filenames.append(f'H:\\data\\2\\data_deep\\gt\\{i}.csv')
-        for i in range(45,50):
-            imu_data_filenames.append(f'H:\\data\\3\\data_deep\\imu\\{i}.csv')
-            gt_data_filenames.append(f'H:\\data\\3\\data_deep\\gt\\{i}.csv')
-        for i in range(47,52):
-            imu_data_filenames.append(f'H:\\data\\4\\data_deep\\imu\\{i}.csv')
-            gt_data_filenames.append(f'H:\\data\\4\\data_deep\\gt\\{i}.csv')
-        for i in range(46,51):
-            imu_data_filenames.append(f'H:\\data\\5\\data_deep\\imu\\{i}.csv')
-            gt_data_filenames.append(f'H:\\data\\5\\data_deep\\gt\\{i}.csv')
-        for i in range(47,52):
-            imu_data_filenames.append(f'H:\\data\\6\\data_deep\\imu\\{i}.csv')
-            gt_data_filenames.append(f'H:\\data\\6\\data_deep\\gt\\{i}.csv')
-        for i in range(51,57):
-            imu_data_filenames.append(f'H:\\data\\7\\data_deep\\imu\\{i}.csv')
-            gt_data_filenames.append(f'H:\\data\\7\\data_deep\\gt\\{i}.csv')
-        for i in range(54,60):
-            imu_data_filenames.append(f'H:\\data\\8\\data_deep\\imu\\{i}.csv')
-            gt_data_filenames.append(f'H:\\data\\8\\data_deep\\gt\\{i}.csv')
-        for i in range(50,56):
-            imu_data_filenames.append(f'H:\\data\\9\\data_deep\\imu\\{i}.csv')
-            gt_data_filenames.append(f'H:\\data\\9\\data_deep\\gt\\{i}.csv')
-
-    traj, xy_rmses, yz_rmses, zx_rmses = [], [], [], []
+        for i in range(16, 18):
+            data_imu_path = f'/home/huydung/devel/intern/data/3eme/{i}/data_deep/imu/'
+            data_gt_path = f'/home/huydung/devel/intern/data/3eme/{i}/data_deep/gt/'
+            for j in range(len([name for name in os.listdir(data_imu_path) if os.path.isfile(os.path.join(data_imu_path, name))])):
+                imu_data_filenames.append(data_imu_path + f'{j}.csv')
+                gt_data_filenames.append(data_gt_path + f'{j}.csv')
+    count = 1
+    traj, x_rmses, y_rmses, z_rmses = [], [], [], []
     for (cur_imu_data_filename, cur_gt_data_filename) in zip(imu_data_filenames, gt_data_filenames):
         if args.dataset == 'oxiod':
             gyro_data, acc_data, pos_data, ori_data = load_oxiod_dataset(cur_imu_data_filename, cur_gt_data_filename)
@@ -116,20 +93,22 @@ def main():
             gt_trajectory = gt_trajectory
 
         trajectory_rmse = np.sqrt(np.mean(np.square(np.linalg.norm(pred_trajectory - gt_trajectory, axis=-1))))
-        xy_rmse = np.sqrt(np.mean(np.square(np.linalg.norm(pred_trajectory[:, [0, 1]] - gt_trajectory[:, [0, 1]], axis=-1))))
-        yz_rmse = np.sqrt(np.mean(np.square(np.linalg.norm(pred_trajectory[:, [1, 2]] - gt_trajectory[:, [1, 2]], axis=-1))))
-        zx_rmse = np.sqrt(np.mean(np.square(np.linalg.norm(pred_trajectory[:, [2, 0]] - gt_trajectory[:, [2, 0]], axis=-1))))
+        x_rmse = np.sqrt(np.mean(np.square(np.linalg.norm(pred_trajectory[:, 0] - gt_trajectory[:, 0], axis=-1))))
+        y_rmse = np.sqrt(np.mean(np.square(np.linalg.norm(pred_trajectory[:, 1] - gt_trajectory[:, 1], axis=-1))))
+        z_rmse = np.sqrt(np.mean(np.square(np.linalg.norm(pred_trajectory[:, 2] - gt_trajectory[:, 2], axis=-1))))
 
-        print(f'Trajectory RMSE, sequence {cur_imu_data_filename}: {trajectory_rmse}\nx:{xy_rmse}\ty:{yz_rmse}\tz:{zx_rmse}')
+        print(f'Trajectory RMSE, sequence {cur_imu_data_filename}: {trajectory_rmse}\nx:{x_rmse}\ty:{y_rmse}\tz:{z_rmse}')
         traj.append(trajectory_rmse)
         if trajectory_rmse > 0.06:
             print('\n\n\n')
-        xy_rmses.append(xy_rmse)
-        yz_rmses.append(yz_rmse)
-        zx_rmses.append(zx_rmse)
+            print(count)
+            count += 1
+        x_rmses.append(x_rmse)
+        y_rmses.append(y_rmse)
+        z_rmses.append(z_rmse)
     
     plt.figure()
-    plt.boxplot([traj, xy_rmses, yz_rmses, zx_rmses], labels=['trajectory rmse', 'xy rmse', 'yz rmse', 'zx rmse'])
+    plt.boxplot([traj, x_rmses, y_rmses, z_rmses], labels=['trajectory rmse', 'x rmse', 'y rmse', 'z rmse'])
     plt.show()
 
 if __name__ == '__main__':

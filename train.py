@@ -1,3 +1,4 @@
+import os
 import numpy as np
 import matplotlib.pyplot as plt
 import argparse
@@ -23,7 +24,7 @@ def main():
 
     np.random.seed(0)
 
-    window_size = 50
+    window_size = 150
     stride = 10
 
     x_gyro = []
@@ -88,39 +89,13 @@ def main():
         gt_data_filenames.append('V2_03_difficult/mav0/state_groundtruth_estimate0/data.csv')
 
     elif args.dataset == 'cea':
-        # for i in range(38):
-        #     imu_data_filenames.append(f'H:\\data\\0\\data_deep\\imu\\{i}.csv')
-        #     gt_data_filenames.append(f'H:\\data\\0\\data_deep\\gt\\{i}.csv')
-        # for i in range(46):
-        #     imu_data_filenames.append(f'H:\\data\\1\\data_deep\\imu\\{i}.csv')
-        #     gt_data_filenames.append(f'H:\\data\\1\\data_deep\\gt\\{i}.csv')
-        # for i in range(49):
-        #     imu_data_filenames.append(f'H:\\data\\2\\data_deep\\imu\\{i}.csv')
-        #     gt_data_filenames.append(f'H:\\data\\2\\data_deep\\gt\\{i}.csv')
-        # for i in range(45):
-        #     imu_data_filenames.append(f'H:\\data\\3\\data_deep\\imu\\{i}.csv')
-        #     gt_data_filenames.append(f'H:\\data\\3\\data_deep\\gt\\{i}.csv')
-        # for i in range(47):
-        #     imu_data_filenames.append(f'H:\\data\\4\\data_deep\\imu\\{i}.csv')
-        #     gt_data_filenames.append(f'H:\\data\\4\\data_deep\\gt\\{i}.csv')
-        # for i in range(46):
-        #     imu_data_filenames.append(f'H:\\data\\5\\data_deep\\imu\\{i}.csv')
-        #     gt_data_filenames.append(f'H:\\data\\5\\data_deep\\gt\\{i}.csv')
-        # for i in range(47):
-        #     imu_data_filenames.append(f'H:\\data\\6\\data_deep\\imu\\{i}.csv')
-        #     gt_data_filenames.append(f'H:\\data\\6\\data_deep\\gt\\{i}.csv')
-        # for i in range(51):
-        #     imu_data_filenames.append(f'H:\\data\\7\\data_deep\\imu\\{i}.csv')
-        #     gt_data_filenames.append(f'H:\\data\\7\\data_deep\\gt\\{i}.csv')
-        # for i in range(54):
-        #     imu_data_filenames.append(f'H:\\data\\8\\data_deep\\imu\\{i}.csv')
-        #     gt_data_filenames.append(f'H:\\data\\8\\data_deep\\gt\\{i}.csv')
-        # for i in range(50):
-        #     imu_data_filenames.append(f'H:\\data\\9\\data_deep\\imu\\{i}.csv')
-        #     gt_data_filenames.append(f'H:\\data\\9\\data_deep\\gt\\{i}.csv')
-        for i in range(10):
-            imu_data_filenames.append(f'H:\\data\\{i}\\imu.csv')
-            gt_data_filenames.append(f'H:\\data\\{i}\\gt.csv')
+
+        for i in range(4):
+            data_imu_path = f'/home/huydung/devel/intern/data/2bis/{i}/data_deep/imu/'
+            data_gt_path = f'/home/huydung/devel/intern/data/2bis/{i}/data_deep/gt/'
+            for j in range(len([name for name in os.listdir(data_imu_path) if os.path.isfile(os.path.join(data_imu_path, name))])):
+                imu_data_filenames.append(data_imu_path + f'{j}.csv')
+                gt_data_filenames.append(data_gt_path + f'{j}.csv')
 
     for i, (cur_imu_data_filename, cur_gt_data_filename) in enumerate(zip(imu_data_filenames, gt_data_filenames)):
         if args.dataset == 'oxiod':
@@ -147,7 +122,9 @@ def main():
             y_delta_p.append(cur_y_delta_p)
             y_delta_q.append(cur_y_delta_q)
 
+    
     x_gyro = np.vstack(x_gyro)
+    print(x_gyro.shape)
     x_acc = np.vstack(x_acc)
 
     y_delta_p = np.vstack(y_delta_p)
@@ -158,7 +135,7 @@ def main():
     initial_learning_rate = 3e-4
     lr_schedule = ExponentialDecay(
         initial_learning_rate,
-        decay_steps=90000,
+        decay_steps=100000,
         decay_rate=0.97,
         staircase=True)
     pred_model = create_pred_model_6d_quat(window_size)
@@ -167,7 +144,7 @@ def main():
 
     filepath = "model_checkpoint.hdf5"
     model_checkpoint = ModelCheckpoint('model_checkpoint.hdf5', monitor='val_loss', save_best_only=True, verbose=1)
-    tensorboard = TensorBoard(log_dir="logs\{}".format(time()), profile_batch=0)
+    tensorboard = TensorBoard(log_dir="logs/{}".format(time()), profile_batch=0)
 
     try:
         history = train_model.fit([x_gyro, x_acc, y_delta_p, y_delta_q], epochs=200, batch_size=32, verbose=1, callbacks=[model_checkpoint, tensorboard], validation_split=0.1)
