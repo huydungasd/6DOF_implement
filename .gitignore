@@ -55,3 +55,8 @@ docs/_build/
 
 # PyBuilder
 target/
+
+# Output folders, files
+logs/
+models/
+*.hdf5
